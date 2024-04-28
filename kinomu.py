@@ -49,7 +49,7 @@ def draw_linking_arrow(doublesided=False):
         dpg.draw_arrow(dpg.get_mouse_pos(), mouse_pos_1, parent="kinomu_editor", thickness=4, color=dpg.get_value("arrow_color"), tag="arrow"+str(arrow_ids)) # can delete with tag!
 
         if doublesided:
-            dpg.draw_arrow(mouse_pos_1, dpg.get_mouse_pos(), parent="kinomu_editor", thickness=4, color=dpg.get_value("arrow_color"), tag="dbarrow"+str(arrow_ids)) # double sided arrow        
+            dpg.draw_arrow(mouse_pos_1, dpg.get_mouse_pos(), parent="kinomu_editor", thickness=4, color=dpg.get_value("arrow_color"), tag="dbarrow"+str(arrow_ids))
 
             undo_stack.append(["arrow"+str(arrow_ids), "dbarrow"+str(arrow_ids)])
         else:
@@ -66,7 +66,7 @@ def draw_person(name="person"):
 
     person_ids += 1
 
-    dpg.draw_text(text=name, pos=click_pos, size=24, parent="kinomu_editor", tag="person"+str(person_ids))
+    dpg.draw_text(label=name, text=name, pos=click_pos, size=24, parent="kinomu_editor", tag="person"+str(person_ids))
 
     undo_stack.append("person"+str(person_ids))
 
@@ -134,18 +134,43 @@ with dpg.window(tag="kinomu_tools", pos=[viewport_width - 250, 30], label="Tools
     dpg.add_color_edit(label="Arrow color", no_inputs=True, tag="arrow_color", default_value=[255, 255, 255])
     dpg.add_button(label="Undo", callback=undo)
 
+def load(sender, name):
+    print(name["file_path_name"])
+
 def save():
-    for i in range(1, arrow_ids + 1):
+    writedata = []
+
+    for i in range(1, arrow_ids + 1): 
+        objwritedata = []
+
         if dpg.does_item_exist("arrow"+str(i)):
+            arrowcfg = dpg.get_item_configuration("arrow"+str(i))
+
             if dpg.does_item_exist("dbarrow"+str(i)):
-                print("doublearrow")
+                objwritedata.append("dbarrow")
             else:
-                print("arrow")
+                objwritedata.append("arrow")
+
+            objwritedata.append([arrowcfg["p1"], arrowcfg["p2"]])
+            objwritedata.append(arrowcfg["color"])
+
+            writedata.append(objwritedata)
 
     for i in range(1, person_ids + 1):
-        if dpg.does_item_exist("person"+str(i)):
-            print("person")
+        objwritedata = []
 
+        if dpg.does_item_exist("person"+str(i)):
+            objwritedata.append("person")
+            objwritedata.append(dpg.get_item_label("person"+str(i)))
+            objwritedata.append(dpg.get_item_configuration("person"+str(i))["pos"])
+            
+            writedata.append(objwritedata)
+        
+    with open("save.knm", "w+") as f:
+        f.write(json.dumps(writedata))
+
+with dpg.file_dialog(directory_selector=False, show=False, callback=load, id="filedialog_load", width=700 ,height=400, default_path="."):
+    dpg.add_file_extension(".knm", color=(0, 255, 0, 255), custom_text="[kinomu save]")
 
 def ctrl_key_handler(before_key=""):
     if dpg.is_key_down(dpg.mvKey_Control):
@@ -180,7 +205,7 @@ with dpg.handler_registry():
 
 with dpg.viewport_menu_bar():
     with dpg.menu(label="File"):
-        dpg.add_menu_item(label="Load", callback=print)
+        dpg.add_menu_item(label="Load", callback=lambda: dpg.show_item("filedialog_load"))
         dpg.add_menu_item(label="Save", callback=save)
         dpg.add_menu_item(label="Save As", callback=print)
 
