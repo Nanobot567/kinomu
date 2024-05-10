@@ -6,6 +6,9 @@ dpg.create_viewport(title="kinomu")
 dpg.setup_dearpygui()
 
 
+# TODO: add dots at click locations to show where arrow should go, or something like that
+# it needs an indicator!
+
 viewport_width = 1280
 viewport_height = 800
 
@@ -22,6 +25,12 @@ person_ids = 0
 currently_dragging = False
 
 undo_stack = []
+
+def convert_color(color):
+    for i, v in enumerate(color):
+        color[i] = v * 255
+    
+    return color
 
 with dpg.window(label="Context Menu", modal=False, popup=True, show=False, tag="right_click_menu", no_title_bar=True):
     dpg.create_context()
@@ -135,7 +144,38 @@ with dpg.window(tag="kinomu_tools", pos=[viewport_width - 250, 30], label="Tools
     dpg.add_button(label="Undo", callback=undo)
 
 def load(sender, name):
-    print(name["file_path_name"])
+    global arrow_ids, person_ids
+
+    for i in range(1, arrow_ids + 1):
+        if dpg.does_item_exist("arrow"+str(i)):
+            dpg.delete_item("arrow"+str(i))
+            if dpg.does_item_exist("dbarrow"+str(i)):
+                dpg.delete_item("dbarrow"+str(i))
+
+    for i in range(1, person_ids + 1):
+        if dpg.does_item_exist("person"+str(i)):
+            dpg.delete_item("person"+str(i))
+
+    arrow_ids = 0
+    person_ids = 0
+
+    with open(name["file_path_name"], "r") as f:
+        data = json.loads(f.read())
+
+        for i, v in enumerate(data):
+            if "arrow" in v[0]:
+                color = convert_color(v[2])
+
+                arrow_ids += 1
+
+                dpg.draw_arrow(v[1][0], v[1][1], parent="kinomu_editor", thickness=4, color=color, tag="arrow"+str(arrow_ids))
+                if v[0] == "dbarrow":
+                    dpg.draw_arrow(v[1][1], v[1][0], parent="kinomu_editor", thickness=4, color=color, tag="dbarrow"+str(arrow_ids))
+
+            elif v[0] == "person":
+                person_ids += 1
+
+                dpg.draw_text(label=v[1], text=v[1], pos=v[2], size=24, parent="kinomu_editor", tag="person"+str(person_ids))
 
 def save():
     writedata = []
