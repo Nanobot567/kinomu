@@ -9,6 +9,18 @@ dpg.setup_dearpygui()
 # TODO: add dots at click locations to show where arrow should go, or something like that
 # it needs an indicator!
 
+COLOR_PRESETS = {
+    "Neutral / Default": [255, 255, 255, 255],
+    "Acquaintence": [135, 255, 107, 255],
+    "Friend": [35, 180, 0, 255],
+    "Best Friend": [0, 255, 0, 255],
+    "Love Interest": [190, 0, 150, 255],
+    "Partner": [140, 0, 226, 255],
+    "Dislikes": [255, 100, 100, 255],
+    "Hates": [100, 0, 0, 255],
+    "Annoyed By": [255, 0, 0, 255],
+}
+
 viewport_width = 1280
 viewport_height = 800
 
@@ -31,6 +43,9 @@ def convert_color(color):
         color[i] = v * 255
     
     return color
+
+def set_arrow_color(uno, dos, tres):
+    dpg.set_value("arrow_color", dpg.get_value(uno))
 
 with dpg.window(label="Context Menu", modal=False, popup=True, show=False, tag="right_click_menu", no_title_bar=True):
     dpg.create_context()
@@ -140,7 +155,18 @@ def undo():
 
 with dpg.window(tag="kinomu_tools", pos=[viewport_width - 250, 30], label="Tools", width=200, height=300):
     dpg.add_radio_button(["Arrow", "Double-sided arrow", "Person"], tag="draw_mode", callback=set_drawmode)
-    dpg.add_color_edit(label="Arrow color", no_inputs=True, tag="arrow_color", default_value=[255, 255, 255])
+ 
+    dpg.add_separator()
+
+    dpg.add_color_edit(label="Arrow color", no_inputs=True, tag="arrow_color", default_value=[255, 255, 255])    
+    with dpg.collapsing_header(label="Color Presets"):
+        for k in COLOR_PRESETS.keys():
+            with dpg.group(horizontal=True, indent=8):
+                dpg.add_color_button(label=k, callback=set_arrow_color, default_value=COLOR_PRESETS[k])
+                dpg.add_text(default_value=k)
+            
+    dpg.add_separator()
+
     dpg.add_button(label="Undo", callback=undo)
 
 def load(sender, name):
