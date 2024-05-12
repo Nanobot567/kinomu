@@ -240,14 +240,18 @@ with dpg.file_dialog(directory_selector=False, show=False, callback=load, id="fi
 
 def ctrl_key_handler(before_key=""):
     if dpg.is_key_down(dpg.mvKey_Control):
-        if before_key == "z":
-            undo()
-        elif before_key == "a":
+        if before_key == "a":
             set_drawmode("Arrow")
         elif before_key == "d":
             set_drawmode("Double-sided arrow")
+        elif before_key == "o":
+            dpg.show_item("filedialog_load")
         elif before_key == "p":
             set_drawmode("Person")
+        elif before_key == "s":
+            save()
+        elif before_key == "z":
+            undo()
 
 def set_dragging_var():
     global currently_dragging
@@ -266,7 +270,9 @@ with dpg.handler_registry():
 
     dpg.add_key_press_handler(dpg.mvKey_A, callback=lambda: ctrl_key_handler("a"))
     dpg.add_key_press_handler(dpg.mvKey_D, callback=lambda: ctrl_key_handler("d"))
+    dpg.add_key_press_handler(dpg.mvKey_O, callback=lambda: ctrl_key_handler("o"))
     dpg.add_key_press_handler(dpg.mvKey_P, callback=lambda: ctrl_key_handler("p"))
+    dpg.add_key_press_handler(dpg.mvKey_S, callback=lambda: ctrl_key_handler("s"))
     dpg.add_key_press_handler(dpg.mvKey_Z, callback=lambda: ctrl_key_handler("z"))
 
 with dpg.viewport_menu_bar():
